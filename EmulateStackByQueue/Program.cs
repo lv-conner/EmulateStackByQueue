@@ -8,21 +8,34 @@ namespace EmulateStackByQueue
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-
-            var emQueue = new EmulateStack<int>();
+            var intQueue = new Queue<int>();
             for (int i = 0; i < 10; i++)
             {
-                emQueue.Push(i);
+                intQueue.Enqueue(i);
+            }
+            foreach (var item in intQueue)
+            {
+                Console.WriteLine(item);
+            }
+            var emStack = new EmulateStack<int>();
+            for (int i = 0; i < 10; i++)
+            {
+                emStack.Push(i);
+            }
+
+            foreach (var item in emStack)
+            {
+                Console.WriteLine(item);
             }
             for (int i = 0; i < 10; i++)
             {
-                Console.WriteLine(emQueue.Pop());
+                Console.WriteLine(emStack.Pop());
             }
             Console.ReadLine();
         }
     }
 
-    public class EmulateStack<T>
+    public class EmulateStack<T>:IEnumerable<T>
     {
         private Queue<T> _firstQueue;
         private Queue<T> _secondQueue;
@@ -33,27 +46,69 @@ namespace EmulateStackByQueue
         }
         public void Push(T value)
         {
-            _firstQueue.Enqueue(value);
-        }
-        public T Pop()
-        {
-            if(_firstQueue.Count == 0)
+            if(_firstQueue.Count == 0 && _secondQueue.Count == 0)
             {
-                throw new Exception("Stack was empty");
+                _firstQueue.Enqueue(value);
+            }
+            else if(_firstQueue.Count != 0)
+            {
+                _firstQueue.Enqueue(value);
+            }
+            else if(_secondQueue.Count != 0)
+            {
+                _secondQueue.Enqueue(value);
             }
             else
             {
-                while(_firstQueue.Count > 1)
+                _firstQueue.Enqueue(value);
+            }
+        }
+        public T Pop()
+        {
+            if (_firstQueue.Count > 0)
+            {
+                while (_firstQueue.Count > 1)
                 {
                     _secondQueue.Enqueue(_firstQueue.Dequeue());
                 }
-                var popValue = _firstQueue.Dequeue();
-                while(_secondQueue.Count > 0)
+                return _firstQueue.Dequeue();
+            }
+            if (_secondQueue.Count > 0)
+            {
+                while (_secondQueue.Count > 1)
                 {
                     _firstQueue.Enqueue(_secondQueue.Dequeue());
                 }
-                return popValue;
+                return _secondQueue.Dequeue();
             }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            if(_firstQueue.Count > 0)
+            {
+                foreach (var item in _firstQueue)
+                {
+                    yield return item;
+                }
+            }
+            if(_secondQueue.Count > 0)
+            {
+                foreach (var item in _secondQueue)
+                {
+                    yield return item;
+                }
+            }
+            yield break;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
